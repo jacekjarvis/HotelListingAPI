@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelListing.Controllers;
 
-[Route("api/[controller]")] //Necessary
 [ApiController] //Necessary
-public class CountryController : Controller
+[Route("api/[controller]")] //Necessary
+public class CountryController : ControllerBase
 {
     private readonly ILogger<CountryController> _logger;
     private readonly ApplicationDbContext _db;
@@ -22,27 +22,43 @@ public class CountryController : Controller
     }
 
     [HttpGet] //Necessary
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCountries()
     {
-        var countries = await _db.Countries.ToListAsync();
-        var results = _mapper.Map<List<CountryDTO>>(countries);
+        try
+        { 
+            var countries = await _db.Countries.ToListAsync();
+            var results = _mapper.Map<List<CountryDTO>>(countries);
 
-        return Ok(results);
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Something went wrong in the {nameof(GetCountries)}");
+            return StatusCode(500, "Internal Server Error. Please try again later");
+        }
     }
 
-    [HttpGet("{id:int}")] 
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCountry(int id)
     {
-        var country = await _db.Countries
-            .Include(c=>c.Hotels)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        try
+        { 
+            var country = await _db.Countries
+                .Include(c=>c.Hotels)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
-        if (country == null)
-        {
-            return NotFound(); // Return 404 if the country is not found
+            var results = _mapper.Map<CountryDTO>(country);
+
+            return Ok(results);
         }
-        var results = _mapper.Map<CountryDTO>(country);
-
-        return Ok(results);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Something went wrong n the {nameof(GetCountry)}");
+            return StatusCode(500, "Internal Server Error. Please try again later");
+        }
     }
 }
