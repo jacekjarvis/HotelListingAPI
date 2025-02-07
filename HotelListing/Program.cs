@@ -1,7 +1,10 @@
+using HotelListing.Configurations;
 using HotelListing.Data;
-
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -29,12 +32,23 @@ builder.Services.AddCors(option =>
         .AllowAnyHeader());
 });
 
+//prevents - System.Text.Json.JsonException: A possible object cycle was detected.
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    options.JsonSerializerOptions.WriteIndented = true; // Optional: Pretty-printing
+});
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(typeof(MapperInitilizer));
 builder.Services.AddControllers();
+
+
 
 var app = builder.Build();
 
