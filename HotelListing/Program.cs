@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using HotelListing.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,9 @@ builder.Services.AddCors(option =>
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
+    
+
+
 
 //prevents - System.Text.Json.JsonException: A possible object cycle was detected.
 builder.Services.Configure<JsonOptions>(options =>
@@ -46,9 +51,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAutoMapper(typeof(MapperInitilizer));
+builder.Services.AddScoped<IAuthManager, AuthManager>();
+
+builder.Services.AddAuthentication();
+builder.Services.ConfigureIdentity(); // service extension method
+builder.Services.ConfigureJWT(builder.Configuration);
+
+
 builder.Services.AddControllers();
-
-
 
 var app = builder.Build();
 
@@ -65,12 +75,9 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseEndpoints(endpoints =>
-//{
-//    endpoints.MapControllers();
-//});
 
 app.MapControllers();
 

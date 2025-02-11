@@ -26,3 +26,7 @@ public class CreateHotelDTO
     public int CountryId { get; set; }
 }
 
+
+public class UpdateHotelDTO: CreateHotelDTO
+{
+}
